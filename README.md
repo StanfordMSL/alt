@@ -1,6 +1,10 @@
 # Demystifying Diffusion Policies: Action Memorization and Simple Lookup Table Alternatives
 This repository is the implementation of [Demystifying Diffusion Policies: Action Memorization and Simple Lookup Table Alternatives](https://arxiv.org/abs/2505.05787).
-The paper is currently under review.
+The paper is currently under review. 
+This branch contains the basic version, trained on 30 trajectories. 
+A more advanced version using 120 trajectories is available in the "multimodel" 
+branch. Additionally, we provide code for training a generative model from 2D 
+points uniformly distributed on 4 different shaped 1D manifold.
 
 ![alt](fig1.png)
 
