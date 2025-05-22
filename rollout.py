@@ -6,11 +6,9 @@ import torch.nn as nn
 import torchvision.transforms as T
 from PIL import Image
 import zarr
-from torchvision import models
+from torchvision.models import resnet18, ResNet18_Weights
 
-##############################
-# 1. preprocess input images
-##############################
+
 preprocess = T.Compose([
     T.ToPILImage(),
     T.Resize((240, 320)),
@@ -20,76 +18,81 @@ preprocess = T.Compose([
 ])
 
 
-##############################
-# 2. define the model - should be consistent with the training script
-##############################
 class ImageEncoder(nn.Module):
     def __init__(self, embed_dim=128):
         super().__init__()
-        self.cnn = models.resnet18(pretrained=True)
+        self.cnn = resnet18(weights=ResNet18_Weights.DEFAULT)
         self.cnn.fc = torch.nn.Linear(self.cnn.fc.in_features, embed_dim)
 
     def forward(self, x):
         return self.cnn(x)
 
 
-class PoseEncoder(nn.Module):
-    def __init__(self, embed_dim=32):
-        super().__init__()
-        self.mlp = torch.nn.Sequential(
-            torch.nn.Linear(7, 64),
-            torch.nn.ReLU(),
-            torch.nn.Linear(64, embed_dim)
-        )
-
-    def forward(self, x):
-        return self.mlp(x)
+# class PoseEncoder(nn.Module):
+#     def __init__(self, embed_dim=32):
+#         super().__init__()
+#         self.mlp = torch.nn.Sequential(
+#             torch.nn.Linear(7, 64),
+#             torch.nn.ReLU(),
+#             torch.nn.Linear(64, embed_dim)
+#         )
+#
+#     def forward(self, x):
+#         return self.mlp(x)
 
 
 class FusionEncoder(nn.Module):
     def __init__(self, img_embed=128, pose_embed=32, final_embed=128):
         super().__init__()
         self.image_encoder = ImageEncoder(img_embed)
-        self.pose_encoder = PoseEncoder(pose_embed)
+        # self.pose_encoder = PoseEncoder(pose_embed)
+        # self.fc = torch.nn.Sequential(
+        #     torch.nn.Linear(img_embed * 2 + pose_embed, 256),
+        #     torch.nn.ReLU(),
+        #     torch.nn.Linear(256, final_embed)
+        # )
+        # self.fc = torch.nn.Sequential(
+        #     torch.nn.Linear(img_embed * 2, 256),
+        #     torch.nn.ReLU(),
+        #     torch.nn.Linear(256, final_embed)
+        # )
         self.fc = torch.nn.Sequential(
-            torch.nn.Linear(img_embed * 2 + pose_embed, 256),
+            torch.nn.Linear(img_embed, 256),
             torch.nn.ReLU(),
             torch.nn.Linear(256, final_embed)
         )
 
     def forward(self, hand_img, third_img, pose):
         # hand_img, third_img: [B, 3, H, W]；pose: [B, 7]
-        hand_feat = self.image_encoder(hand_img)  # [B, img_embed]
+        # hand_feat = self.image_encoder(hand_img)  # [B, img_embed]
         third_feat = self.image_encoder(third_img)  # [B, img_embed]
-        pose_feat = self.pose_encoder(pose)  # [B, pose_embed]
-        fused = torch.cat([hand_feat, third_feat, pose_feat], dim=1)
+        # pose_feat = self.pose_encoder(pose)  # [B, pose_embed]
+        # fused = torch.cat([hand_feat, third_feat, pose_feat], dim=1)
+        # fused = torch.cat([hand_feat, third_feat], dim=1)
+        fused = third_feat
         embedding = self.fc(fused)
         # L2 normalization, make cosine similarity calculation more stable
         embedding = embedding / torch.norm(embedding, dim=1, keepdim=True)
         return embedding
 
 
-##############################
-# 3. load the trained model and database
-##############################
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = FusionEncoder().to(device)
-model.load_state_dict(torch.load("fusion_encoder_contrastive.pth", map_location=device))
+model.load_state_dict(torch.load("fusion_encoder_contrastive_fast.pth", map_location=device))
 model.eval()
 
 # loading the trajectory database
 db = torch.load("traj_database.pt", map_location=device)
-db_embeddings = db['embeddings'].to(device)  # [N, final_embed]
+db_embeddings = db['embeddings'].to(device)
 info_list = db['info']
 
-##############################
-# 4. load zarr file, get access the low-dim data and episode boundaries
-##############################
-zarr_path = "rgb_training/replay_buffer.zarr"  # 请根据实际路径修改
+
+zarr_path = "multimodal_training/replay_buffer.zarr"
 zarr_root = zarr.open(zarr_path, mode='r')
-robot_eef_pos = zarr_root["data/robot_eef_pos"][:]  # (N, 3)
-robot_eef_quat = zarr_root["data/robot_eef_quat"][:]  # (N, 4)
-episode_ends = zarr_root["meta/episode_ends"][:]  # (num_episode,)
+robot_eef_pos = zarr_root["data/robot_eef_pos"][:]
+robot_eef_quat = zarr_root["data/robot_eef_quat"][:]
+episode_ends = zarr_root["meta/episode_ends"][:]
 
 # start and end frame indices for each episode
 episode_boundaries = []
@@ -100,20 +103,12 @@ for end in episode_ends:
 
 
 def get_global_index(episode, local_idx):
-    """
-    according to the episode and local index, get the global index
-    """
     start, end = episode_boundaries[episode]
     return start + local_idx
 
 
 def get_future_trajectory(global_idx, t):
-    """
-    from the global index, get the future t steps trajectory
-    each step is 7-dim (EEF: position + quaternion)
-    if the future steps are not enough, pad the last step
-    return a tensor of shape [t, 7]
-    """
+
     total_frames = robot_eef_pos.shape[0]
     future = []
     for idx in range(global_idx, min(global_idx + t, total_frames)):
@@ -127,9 +122,7 @@ def get_future_trajectory(global_idx, t):
     return torch.stack(future)
 
 
-##############################
-# 5. define a safety position
-##############################
+
 def get_safety_position():
     """
     return a safe EEF position (7-dim)
@@ -139,66 +132,87 @@ def get_safety_position():
     return safe_eef
 
 
-##############################
-# 6. the main function for real-time rollout
-##############################
-# set the similarity threshold
-similarity_threshold = 0.5
-# output future t_steps (50 in practice)
-t_steps = 3
 
+similarity_threshold = 0.5
+t_steps = 20
 
 def realtime_rollout(hand_img_cv, third_img_cv, pose_np):
-    """
-    INPUT：
-      hand_img_cv, third_img_cv：the real-time input images (BGR format)
-      pose_np： the real-time pose data (7-dim EEF data)
-    OUTPUT：
-      if match successfully, return the future t steps trajectory (tensor, shape [t, 7])
-      if match failed, return a safe position (7-dim)
-    """
-    # bgr -> rgb
-    hand_img_rgb = cv2.cvtColor(hand_img_cv, cv2.COLOR_BGR2RGB)
-    third_img_rgb = cv2.cvtColor(third_img_cv, cv2.COLOR_BGR2RGB)
-    hand_tensor = preprocess(hand_img_rgb).unsqueeze(0).to(device)
-    third_tensor = preprocess(third_img_rgb).unsqueeze(0).to(device)
-    # convert np pose to tensor, add batch dim
-    pose_tensor = torch.tensor(pose_np, dtype=torch.float).unsqueeze(0).to(device)
+
+    # 1. Preprocess inputs
+    hand_rgb  = cv2.cvtColor(hand_img_cv,  cv2.COLOR_BGR2RGB)
+    third_rgb = cv2.cvtColor(third_img_cv, cv2.COLOR_BGR2RGB)
+    h_t = preprocess(hand_rgb).unsqueeze(0).to(device)
+    t_t = preprocess(third_rgb).unsqueeze(0).to(device)
+    p_t = torch.tensor(pose_np, dtype=torch.float).unsqueeze(0).to(device)
 
     with torch.no_grad():
-        emb = model(hand_tensor, third_tensor, pose_tensor)  # [1, final_embed]
+        emb = model(h_t, t_t, p_t)  # [1, D]
 
-    # calculate cosine similarity with database embeddings
-    similarity = torch.matmul(db_embeddings, emb.T).squeeze()  # [N]
-    max_sim, max_idx = torch.max(similarity, dim=0)
+    sim_all = torch.matmul(db_embeddings, emb.T).squeeze(1)  # [N]
 
-    # if the max similarity is lower than the threshold, return a safe position
-    if max_sim.item() < similarity_threshold:
-        print("匹配相似度过低，认为输入为 OOD，返回安全位置")
-        return get_safety_position()
+    sorted_sims, sorted_idxs = torch.sort(sim_all, descending=True)
 
-    # 从 info_list 中获取匹配的 (episode, local_frame_idx)
-    matched_episode, matched_local_idx = info_list[max_idx]
-    global_idx = get_global_index(matched_episode, matched_local_idx)
-    print(
-        f"匹配到 episode: {matched_episode}, local frame: {matched_local_idx}, 全局索引: {global_idx}, 相似度: {max_sim.item():.3f}")
+    unique_eps   = []
+    unique_idxs  = []
+    unique_sims  = []
+    for sim_val, db_idx in zip(sorted_sims.cpu().tolist(),
+                               sorted_idxs.cpu().tolist()):
+        ep, _ = info_list[db_idx]
+        if ep in unique_eps:
+            continue
+        unique_eps.append(ep)
+        unique_idxs.append(db_idx)
+        unique_sims.append(sim_val)
+        if len(unique_eps) == 3:
+            break
 
-    # 提取未来 t 步轨迹（7 维 EEF 数据）
-    future_traj = get_future_trajectory(global_idx, t_steps)
-    return future_traj
+    if not unique_sims or unique_sims[0] < similarity_threshold:
+        return [get_safety_position()]*3, [-1]*3, [0.0]*3
+
+    future_trajs = []
+    for db_idx in unique_idxs:
+        ep, local = info_list[db_idx]
+        gidx = get_global_index(ep, local)
+        future_trajs.append(get_future_trajectory(gidx, t_steps))
+
+    return future_trajs, unique_eps, unique_sims
 
 
-##############################
-# 7. call the function
-######################################
+def get_poses():
+    episode_starts = np.concatenate([[0], episode_ends[:-1] + 1], axis=0)
+
+    start_poses = []
+    for start_idx in episode_starts:
+        pos = robot_eef_pos[start_idx]
+        quat = robot_eef_quat[start_idx]
+        pose = np.concatenate([pos, quat], axis=0)
+        start_poses.append(pose)
+    start_poses = np.stack(start_poses, axis=0)  # (num_episode, 7)
+    return start_poses
+
+
 if __name__ == "__main__":
-    # real-time input image
-    hand_img_cv = cv2.imread("test_cases/hand30.jpg")
-    third_img_cv = cv2.imread("test_cases/eye30.jpg")
-    # suppose we have the real time pose data
-    pose_np = np.array([259.093719, 2.891501, 258.123199, 1.05087541e-04, 9.99983194e-01, -4.12921014e-03, -4.06809698e-03])
-    # pose_np = np.array([0, 0, 0, 0, 0, 0, 0])
+    import time
+    pose_np = get_poses()
 
-    future_trajectory = realtime_rollout(hand_img_cv, third_img_cv, pose_np)
-    print("The selected trajectory is：")
-    print(future_trajectory)
+    total_cases = 31
+    success_count = 0
+    failed_cases = []
+
+    for idx in range(total_cases):
+        hand_img_path  = f"InD/hand{idx}.jpg"
+        third_img_path = f"InD/eye{idx}.jpg"
+        hand_cv  = cv2.imread(hand_img_path)
+        third_cv = cv2.imread(third_img_path)
+
+        t0 = time.time()
+        future_trajs, matched_eps, sims = realtime_rollout(hand_cv, third_cv, pose_np[idx])
+        t1 = time.time()
+
+        print(f"\n[Test {idx}] Time: {t1-t0:.4f}s")
+
+        for rank, (traj, ep, sim) in enumerate(zip(future_trajs, matched_eps, sims), start=1):
+            print(f"  Match {rank}: Episode={ep}, Similarity={sim:.3f}")
+
+
+
