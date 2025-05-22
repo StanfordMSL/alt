@@ -8,11 +8,10 @@ import torch.optim as optim
 import torchvision.transforms as T
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
-from torchvision import models
+from torchvision.models import resnet18, ResNet18_Weights
 
-########################################
-# 1. data augmentation and preprocessing pipeline
-########################################
+
+# define the data augmentation pipeline
 # First, we convert the image to a PIL image
 # then resize it to 320x240 (note that the order of dimensions in PIL is (height, width) so we write (240,320))
 # finally we apply random horizontal flip, color jitter, and finally convert it to a tensor and normalize it.
@@ -20,15 +19,14 @@ data_transforms = T.Compose([
     T.ToPILImage(),
     T.Resize((240, 320)),  # the resolution of the image input should be 320x240
     # T.RandomHorizontalFlip(),
-    # T.ColorJitter(0.4, 0.4, 0.4, 0.1),
+    T.ColorJitter(0.2, 0.2, 0.2, 0.05),
+    T.RandomResizedCrop((240, 320), scale=(0.9, 1.0)),
     T.ToTensor(),
     T.Normalize(mean=[0.485, 0.456, 0.406],
                 std=[0.229, 0.224, 0.225])
 ])
 
-########################################
-# 2. take the data from zarr and videos
-########################################
+# create different views of the image with random augmentations (different each time)
 class RobotArmDataset(Dataset):
     def __init__(self, zarr_path, videos_dir, transform):
         """
@@ -54,7 +52,7 @@ class RobotArmDataset(Dataset):
         self.total_frames = self.robot_eef_pos.shape[0]
 
         # loading video frames
-        self.video_frames = {}  # format: {episode_index: {'hand': [...], 'third': [...] } }
+        self.video_frames = {}
         num_eps = len(self.episode_boundaries)
         for ep in range(num_eps):
             ep_dir = os.path.join(videos_dir, str(ep))
@@ -119,53 +117,70 @@ class RobotArmDataset(Dataset):
 
         return view1, view2
 
-########################################
-# 3. encoder
-########################################
+# Define the encoder
 class ImageEncoder(nn.Module):
     def __init__(self, embed_dim=128):
         super().__init__()
-        self.cnn = models.resnet18(pretrained=True)
+        self.cnn = resnet18(weights=ResNet18_Weights.DEFAULT)
         self.cnn.fc = nn.Linear(self.cnn.fc.in_features, embed_dim)
 
     def forward(self, x):
         return self.cnn(x)
 
-class PoseEncoder(nn.Module):
-    def __init__(self, embed_dim=32):
-        super().__init__()
-        self.mlp = nn.Sequential(
-            nn.Linear(7, 64),
-            nn.ReLU(),
-            nn.Linear(64, embed_dim)
-        )
-    def forward(self, x):
-        return self.mlp(x)
+# class PoseEncoder(nn.Module):
+#     def __init__(self, embed_dim=32):
+#         super().__init__()
+#         self.mlp = nn.Sequential(
+#             nn.Linear(7, 64),
+#             nn.ReLU(),
+#             nn.Linear(64, embed_dim)
+#         )
+#     def forward(self, x):
+#         return self.mlp(x)
 
 class FusionEncoder(nn.Module):
     def __init__(self, img_embed=128, pose_embed=32, final_embed=128):
         super().__init__()
         self.image_encoder = ImageEncoder(img_embed)
-        self.pose_encoder = PoseEncoder(pose_embed)
+        # use pos + third_img + first_img
+        # self.pose_encoder = PoseEncoder(pose_embed)
+        # self.fc = nn.Sequential(
+        #     nn.Linear(img_embed * 2 + pose_embed, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, final_embed)
+        # use hand_img + third_img
         self.fc = nn.Sequential(
-            nn.Linear(img_embed * 2 + pose_embed, 256),
-            nn.ReLU(),
-            nn.Linear(256, final_embed)
+                nn.Linear(img_embed * 2, 256),
+                nn.ReLU(),
+                nn.Linear(256, final_embed)
         )
+        # only third view is used
+        # self.fc = nn.Sequential(
+        #     nn.Linear(img_embed, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, final_embed)
+        # )
     def forward(self, hand_img, third_img, pose):
+        """
+        we have three modes:
+            1. hand_img + third_img + pose
+            2. hand_img + third_img
+            3. third_img
+        """
         # hand_img, third_img: [B, 3, H, W]，pose: [B, 7]
         hand_feat = self.image_encoder(hand_img)   # [B, img_embed]
         third_feat = self.image_encoder(third_img)  # [B, img_embed]
-        pose_feat = self.pose_encoder(pose)          # [B, pose_embed]
-        fused = torch.cat([hand_feat, third_feat, pose_feat], dim=1)
+        # pose_feat = self.pose_encoder(pose)          # [B, pose_embed]
+        # fused = torch.cat([hand_feat, third_feat, pose_feat], dim=1)
+        fused = torch.cat([hand_feat, third_feat], dim=1)
+        # fused = third_feat
         embedding = self.fc(fused)
-        # use L2 normalization to make cosine similarity calculation more stable
+        # use L2 normalization
         embedding = embedding / torch.norm(embedding, dim=1, keepdim=True)
         return embedding
 
-########################################
-# 4. NT-Xent contrastive loss
-########################################
+# contrastive loss
+# we use NTXentLoss
 class NTXentLoss(nn.Module):
     def __init__(self, batch_size, temperature=0.5, device='cuda'):
         super().__init__()
@@ -188,28 +203,26 @@ class NTXentLoss(nn.Module):
         # z_i, z_j: [batch_size, embed_dim]
         N = 2 * self.batch_size
         z = torch.cat([z_i, z_j], dim=0)  # [2*batch_size, embed_dim]
-        sim = torch.matmul(z, z.T) / self.temperature  # 相似度矩阵 [2B, 2B]
-        # 取出正样本对的相似度（对角线偏移 batch_size 位置）
+        sim = torch.matmul(z, z.T) / self.temperature  # similarity matirx [2B, 2B]
+
         sim_i_j = torch.diag(sim, self.batch_size)
         sim_j_i = torch.diag(sim, -self.batch_size)
         positives = torch.cat([sim_i_j, sim_j_i]).reshape(N, 1)
         negatives = sim[self.mask].reshape(N, -1)
-        # 构造标签，每个样本正样本的位置记为0
+        # build the labels
         labels = torch.zeros(N, dtype=torch.long).to(self.device)
-        # 将正样本相似度与负样本一起构造 logits
+        # build the logits
         logits = torch.cat([positives, negatives], dim=1)
         loss = self.criterion(logits, labels)
         loss /= N
         return loss
 
-#################################
-# 5. Main Training Loop
-#####################################
+# Training the model
 # Hyperparameters
 batch_size = 32
-num_epochs = 20
+num_epochs = 40    # 40 as default
 learning_rate = 1e-4
-temperature = 0.3
+temperature = 0.4  # 0.4 as default
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # data path of videos and zarr file
@@ -219,7 +232,7 @@ videos_dir = 'rgb_training/videos'
 dataset = RobotArmDataset(zarr_path=zarr_path, videos_dir=videos_dir, transform=data_transforms)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
 
-# instantiate the model, optimizer and loss function
+# initialize the model, optimizer and loss function
 model = FusionEncoder().to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 nt_xent_loss = NTXentLoss(batch_size=batch_size, temperature=temperature, device=device)
