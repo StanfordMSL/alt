@@ -3,18 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team – My Diffusion Policy Project</title>
+    <title>Team – ALT | ICLR 2026</title>
+    <meta name="description" content="The team behind Demystifying Robot Diffusion Policies: Action Memorization and a Simple Lookup Table Alternative (ICLR 2026 poster).">
     <link rel="stylesheet" href="css/style.css">
+    <script defer src="js/main.js"></script>
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
-            <a class="logo" href="index.html">
-                <img src="assets/logo.png" alt="Logo" />
+            <a class="brand" href="index.html">
+                <span class="brand-mark">ALT</span>
+                <span class="brand-sub">ICLR 2026</span>
             </a>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">Team</a></li>
+                <li><a href="index.html#details">Details</a></li>
+                <li><a href="index.html#videos">Video</a></li>
+                <li><a href="index.html#publications">BibTeX</a></li>
+                <li><a href="about.html" class="active">Team</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
@@ -22,54 +30,61 @@
     <section class="section">
         <div class="container">
             <h2>Our Team</h2>
-            <div class="team-grid">
-                <!-- 成员 1 -->
+            <p class="lead">The authors of <em>Demystifying Robot Diffusion Policies: Action Memorization and a
+                Simple Lookup Table Alternative</em>, ICLR 2026 (Poster).</p>
+
+            <div class="team-grid" style="margin-top: 2.5rem;">
               <div class="team-member">
                 <img src="assets/team/chengyang.jpeg" alt="Chengyang He">
-                <a href="#" class="name">Chengyang He<sup>1,2,*</sup></a>
+                <span class="name">Chengyang He<sup>1,2,*</sup></span>
               </div>
-              <!-- 成员 2 -->
               <div class="team-member">
                 <img src="assets/team/xu.jpg" alt="Xu Liu">
-                <a href="#" class="name">Xu Liu<sup>1,*</sup></a>
+                <span class="name">Xu Liu<sup>1,*</sup></span>
               </div>
-              <!-- 成员 3 -->
               <div class="team-member">
                 <img src="assets/team/gadi.jpeg" alt="Gadiel Sznaier Camps">
-                <a href="#" class="name">Gadiel Sznaier Camps<sup>1</sup></a>
+                <span class="name">Gadiel Sznaier Camps<sup>1</sup></span>
               </div>
-              <!-- 成员 new -->
               <div class="team-member">
                 <img src="assets/team/joebruno.jpg" alt="Joseph Bruno">
-                <a href="#" class="name">Joseph Bruno<sup>3</sup></a>
+                <span class="name">Joseph Bruno<sup>3</sup></span>
               </div>
-              <!-- 成员 4 -->
               <div class="team-member">
                 <img src="assets/team/gui.jpeg" alt="Guillaume Sartoretti">
-                <a href="#" class="name">Guillaume Sartoretti<sup>2</sup></a>
+                <span class="name">Guillaume Sartoretti<sup>2</sup></span>
               </div>
-              <!-- 成员 5 -->
               <div class="team-member">
                 <img src="assets/team/mac.jpg" alt="Mac Schwager">
-                <a href="#" class="name">Mac Schwager<sup>1</sup></a>
+                <span class="name">Mac Schwager<sup>1</sup></span>
               </div>
+            </div>
+
+            <div class="affiliations">
+              <div><sup>1</sup>Stanford University</div>
+              <div><sup>2</sup>National University of Singapore</div>
+              <div><sup>3</sup>Temple University</div>
+              <div><sup>*</sup>Equal Contribution</div>
             </div>
         </div>
     </section>
 
-    <!-- 机构脚注 -->
-    <div class="affiliations">
-      <div><sup>1</sup>Stanford University</div>
-      <div><sup>2</sup>National University of Singapore</div>
-      <div><sup>3</sup>Temple University</div>
-      <div><sup>*</sup>Equal Contribution</div>
+    <div class="top-logos">
+        <div class="container logo-row">
+          <img src="assets/stanford_logo.png" alt="Stanford University">
+          <img src="assets/nus_logo.png" alt="National University of Singapore" class="logo2">
+          <img src="assets/msl_logo.png" alt="Multi-Robot Systems Lab" class="logo3">
+          <img src="assets/marmot_logo.png" alt="MARMot Lab" class="logo4">
+        </div>
     </div>
 
     <footer>
         <div class="container">
-            <p>© 2025 Demystifying Robot Diffusion Policies: Action Memorization and a Simple Lookup Table Alternative</p>
+            <p class="footer-title">Demystifying Robot Diffusion Policies: Action Memorization and a Simple Lookup Table Alternative</p>
+            <p class="footer-meta">ICLR 2026 (Poster) · © 2026 The Authors</p>
         </div>
     </footer>
+
+    <button class="to-top" type="button" aria-label="Back to top">↑</button>
 </body>
 </html>
-

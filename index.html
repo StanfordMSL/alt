@@ -3,170 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Action Lookup Table</title>
+    <title>ALT: Demystifying Robot Diffusion Policies | ICLR 2026</title>
+    <meta name="description" content="ICLR 2026 poster. Diffusion policies memorize an action lookup table — and this is beneficial. We propose ALT, a lightweight lookup-table policy that matches diffusion policy performance at a fraction of the inference time and memory.">
+    <meta property="og:title" content="Demystifying Robot Diffusion Policies: Action Memorization and a Simple Lookup Table Alternative">
+    <meta property="og:description" content="ICLR 2026 poster — the Action Lookup Table (ALT) policy.">
+    <meta property="og:image" content="assets/alt_mechanism.png">
+    <meta property="og:type" content="website">
     <link rel="stylesheet" href="css/style.css">
+    <noscript><style>.reveal { opacity: 1; transform: none; }</style></noscript>
     <script defer src="js/main.js"></script>
 </head>
 <body>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <a class="logo" href="index.html">
-                <img src="assets/logo.png" alt="Logo" />
+            <a class="brand" href="index.html">
+                <span class="brand-mark">ALT</span>
+                <span class="brand-sub">ICLR 2026</span>
             </a>
+            <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-<!--                <li><a href="#details">Details</a></li>-->
+                <li><a href="#abstract">Abstract</a></li>
                 <li class="dropdown">
-                <a href="#details" class="dropbtn">Details</a>
-                <ul class="dropdown-content">
-                  <li><a href="#diffusion-model-analysis">Diffusion Model Analysis</a></li>
-                  <li><a href="#diffusion-policy-analysis">Diffusion Policy Analysis</a></li>
-                  <li><a href="#alt-results">ALT Results</a></li>
-                </ul>
+                  <a href="#details" class="dropbtn">Details</a>
+                  <ul class="dropdown-content">
+                    <li><a href="#diffusion-model-analysis">Diffusion Model Analysis</a></li>
+                    <li><a href="#diffusion-policy-analysis">Diffusion Policy Analysis</a></li>
+                    <li><a href="#alt-results">ALT Results</a></li>
+                  </ul>
                 </li>
                 <li><a href="#videos">Video</a></li>
-                <li><a href="#publications">Paper</a></li>
+                <li><a href="#publications">BibTeX</a></li>
                 <li><a href="about.html">Team</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Top Logos -->
-    <div class="top-logos">
-        <div class="container logo-row">
-          <img src="assets/stanford_logo.png" alt="stanford">
-          <img src="assets/nus_logo.png" alt="nus" class="logo2">
-          <img src="assets/msl_logo.png" alt="msl" class="logo3">
-          <img src="assets/marmot_logo.png" alt="marmot" class="logo4">
-        </div>
-    </div>
-
-    <!-- Hero Section -->
+    <!-- Hero -->
     <header class="hero">
         <div class="container">
+            <span class="venue-badge"><span class="dot"></span>ICLR 2026 · Poster</span>
+
             <h1>Demystifying Robot Diffusion Policies:
                 <span class="highlight">Action Memorization</span> and a Simple
                 <span class="highlight">Lookup Table</span> Alternative
             </h1>
-            <!-- 新增作者列表 -->
+
             <div class="authors">
               <p>
                 Chengyang He<sup>1,2,*</sup>,
                 Xu Liu<sup>1,*</sup>,
                 Gadiel Sznaier Camps<sup>1</sup>,
                 Joseph Bruno<sup>3</sup>,
+              </p>
+              <p>
                 Guillaume Sartoretti<sup>2</sup>,
                 Mac Schwager<sup>1</sup>
               </p>
             </div>
+
             <div class="affiliations">
               <p><sup>1</sup>Stanford University</p>
               <p><sup>2</sup>National University of Singapore</p>
               <p><sup>3</sup>Temple University</p>
               <p><sup>*</sup>Equal Contribution</p>
             </div>
-            <div class="hero-text-img">
-                <p> <img src="assets/alt_mechanism.png" alt="Illustration" class="wrap-img">
-                    Diffusion policies have demonstrated remarkable dexterity and robustness in intricate,
-                    high-dimensional robot manipulation tasks, while training from a small number of demonstrations.
-                    However, the reason for this performance remains a mystery. In this paper, we offer a surprising
-                    hypothesis: diffusion policies essentially memorize an action lookup table---<span class="highlight">and this is beneficial</span>.
-                    We posit that, at runtime, diffusion policies find the closest training image to the test image in a latent space,
-                    and recall the associated training action sequence, offering reactivity without the need for action generalization.
-                    This is effective in the sparse data regime, where there is not enough data density for the model to learn action generalization.
-                    We support this claim with systematic empirical evidence.
-                    Even when conditioned on wildly out of distribution (OOD) images of cats and dogs,
-                    the Diffusion Policy still outputs an action sequence from the training data. With this insight,
-                    we propose a simple policy, the Action Lookup Table (ALT), as a lightweight alternative to the Diffusion Policy.
-                    Our ALT policy uses a contrastive image encoder as a hash function to index the closest corresponding training action sequence,
-                    explicitly performing the computation that the Diffusion Policy implicitly learns.
-                    We show empirically that for relatively small datasets, ALT matches the performance of a diffusion model,
-                    while requiring only 0.0034 of the inference time and 0.0085 of the memory footprint,
-                    allowing for much faster closed-loop inference with resource constrained robots.
-                    We also train our ALT policy to give an explicit OOD flag when the distance between the runtime image is too far in the latent space from the training images,
-                    giving a simple but effective runtime monitor.</p>
+
+            <div class="hero-links">
+              <a class="btn btn-primary" href="https://arxiv.org/abs/2505.05787" target="_blank" rel="noopener">📄 Paper</a>
+              <a class="btn" href="https://arxiv.org/pdf/2505.05787" target="_blank" rel="noopener">⬇ PDF</a>
+              <a class="btn btn-ghost" href="#videos">▶ Video</a>
+              <a class="btn btn-ghost" href="#publications">❝ BibTeX</a>
             </div>
         </div>
     </header>
 
-    <!-- Details Section -->
-    <section id="details" class="section">
+    <!-- Institution logos -->
+    <div class="top-logos">
+        <div class="container logo-row">
+          <img src="assets/stanford_logo.png" alt="Stanford University">
+          <img src="assets/nus_logo.png" alt="National University of Singapore" class="logo2">
+          <img src="assets/msl_logo.png" alt="Multi-Robot Systems Lab" class="logo3">
+          <img src="assets/marmot_logo.png" alt="MARMot Lab" class="logo4">
+        </div>
+    </div>
+
+    <!-- Abstract -->
+    <section id="abstract" class="section">
+      <div class="container reveal">
+        <h2>Abstract</h2>
+        <div class="abstract-body">
+            <img src="assets/alt_mechanism.png" alt="Overview of the Action Lookup Table mechanism" class="wrap-img">
+            <p>
+                Diffusion policies have demonstrated remarkable dexterity and robustness in intricate,
+                high-dimensional robot manipulation tasks, while training from a small number of demonstrations.
+                However, the reason for this performance remains a mystery. In this paper, we offer a surprising
+                hypothesis: diffusion policies essentially memorize an action lookup table&mdash;<span class="highlight">and this is beneficial</span>.
+                We posit that, at runtime, diffusion policies find the closest training image to the test image in a latent space,
+                and recall the associated training action sequence, offering reactivity without the need for action generalization.
+                This is effective in the sparse data regime, where there is not enough data density for the model to learn action generalization.
+                We support this claim with systematic empirical evidence.
+                Even when conditioned on wildly out of distribution (OOD) images of cats and dogs,
+                the Diffusion Policy still outputs an action sequence from the training data. With this insight,
+                we propose a simple policy, the Action Lookup Table (ALT), as a lightweight alternative to the Diffusion Policy.
+                Our ALT policy uses a contrastive image encoder as a hash function to index the closest corresponding training action sequence,
+                explicitly performing the computation that the Diffusion Policy implicitly learns.
+                We show empirically that for relatively small datasets, ALT matches the performance of a diffusion model,
+                while requiring only 0.0034 of the inference time and 0.0085 of the memory footprint,
+                allowing for much faster closed-loop inference with resource constrained robots.
+                We also train our ALT policy to give an explicit OOD flag when the distance between the runtime image is too far in the latent space from the training images,
+                giving a simple but effective runtime monitor.
+            </p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat">
+            <div class="stat-value">~290&times;</div>
+            <div class="stat-label">faster inference than a Diffusion Policy (0.0034 of the time)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">~118&times;</div>
+            <div class="stat-label">smaller memory footprint (0.0085 of the memory)</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">OOD</div>
+            <div class="stat-label">explicit out-of-distribution flag as a runtime monitor</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Details -->
+    <section id="details" class="section section-alt">
       <div class="container">
         <h2>Details</h2>
-        <p>In this section we provide more supplementary details and visualization of the experimental results.
+        <p class="lead">In this section we provide more supplementary details and visualization of the experimental results.
             We explain it from three aspects: diffusion model analysis, diffusion policy analysis, and ALT results.
         </p>
+
         <h3 id="diffusion-model-analysis">Diffusion Model Analysis</h3>
-          <div class="video-grid">
-              <!-- 第一列，4 个视频 -->
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/elps/1.mp4" type="video/mp4">
+        <div class="video-grid">
+              <!-- Row 1: low capacity, small dataset -->
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/elps/1.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/rect/1.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/rect/1.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/heart/1.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/heart/1.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/star/1.mp4" type="video/mp4">
-              </video>
-
-              <!-- 第二列 -->
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/elps/2.mp4" type="video/mp4">
-              </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/rect/2.mp4" type="video/mp4">
-              </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/heart/2.mp4" type="video/mp4">
-              </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/star/2.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/star/1.mp4" type="video/mp4">
               </video>
 
-              <!-- 第三列 -->
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/elps/3.mp4" type="video/mp4">
+              <!-- Row 2: low capacity, large dataset -->
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/elps/2.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/rect/3.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/rect/2.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/heart/3.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/heart/2.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/star/3.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/star/2.mp4" type="video/mp4">
               </video>
 
-              <!-- 第四列 -->
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/elps/4.mp4" type="video/mp4">
+              <!-- Row 3: high capacity, small dataset (Diffusion Policy regime) -->
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/elps/3.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/rect/4.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/rect/3.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/heart/4.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/heart/3.mp4" type="video/mp4">
               </video>
-              <video autoplay loop muted playsinline>
-                <source src="assets/dma/star/4.mp4" type="video/mp4">
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/star/3.mp4" type="video/mp4">
               </video>
-          </div>
 
-        <p class="dma-intro">
+              <!-- Row 4: high capacity, large dataset -->
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/elps/4.mp4" type="video/mp4">
+              </video>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/rect/4.mp4" type="video/mp4">
+              </video>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/heart/4.mp4" type="video/mp4">
+              </video>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/dma/star/4.mp4" type="video/mp4">
+              </video>
+        </div>
+
+        <p class="caption">
             Training a generative model from 2D points uniformly distributed on 4 different shaped 1D manifold.
             Orange indicates the training samples, black represents the random seeds used for diffusion, light
             cyan lines show the denoising flow direction, and blue marks the final inference results. Each subplot
-            shows a different training regime. First row: A low-capacity model (~146 parameters) trained on a small
-            dataset (20 samples) gives erratic inferences. Second row: The low-capacity model trained on a large
-            dataset (100k samples) generalizes to the wrong manifold. Third row: A high-capacity model
+            shows a different training regime. <b>First row:</b> A low-capacity model (~146 parameters) trained on a small
+            dataset (20 samples) gives erratic inferences. <b>Second row:</b> The low-capacity model trained on a large
+            dataset (100k samples) generalizes to the wrong manifold. <b>Third row:</b> A high-capacity model
             (~9.5 million parameters) trained on a small dataset (the Diffusion Policy regime) approximately
-            memorizes the dataset, but does not generalize.  All the inference (blue) overlay the training data
-            (orange) points, essentially implementing a lookup table. Fourth row: A high-capacity model trained on
+            memorizes the dataset, but does not generalize. All the inference (blue) overlay the training data
+            (orange) points, essentially implementing a lookup table. <b>Fourth row:</b> A high-capacity model trained on
             a large dataset shows strong generalization to the correct data manifold (regime of large scale image
             diffusion models).
         </p>
@@ -179,17 +223,17 @@
             of diffusion models</span>.
         </p>
         <div class="image-stack">
-          <img src="assets/dpa/exp.png" alt="Policy Analysis 1">
-          <img src="assets/dpa/analysis.png" alt="Policy Analysis 2">
-          <img src="assets/dpa/appx_id.png" alt="Policy Analysis 3">
+          <img src="assets/dpa/exp.png" alt="Experimental setup for the diffusion policy analysis" loading="lazy">
+          <img src="assets/dpa/analysis.png" alt="Similarity and distance statistics between inference and training trajectories" loading="lazy">
+          <img src="assets/dpa/appx_id.png" alt="In-distribution trajectory matching statistics" loading="lazy">
         </div>
-        <p>
+        <p class="caption">
             Similarity and distance statistics between inference and training trajectories. Each subplot shows the
             similarity scores (blue bars) and average distances (orange lines) between the Diffusion Policy
             inference and training trajectories. The large gap between the closest and second-closest neighbors
             indicates strong alignment with specific training examples.
             In the presence of distractors, almost all high-similarity matches are sharply concentrated on a single
-            training trajectory, indicating a surprising OOD default behavior.  The diffusion model seems to revert
+            training trajectory, indicating a surprising OOD default behavior. The diffusion model seems to revert
             to one or two fallback action sequences when presented with OOD images.
             Even when the input is entirely unrelated to the task, for example, an image of a cat or a dog, the diffusion
             model still produces an action sequence that closely resembles one from the training set.
@@ -198,184 +242,183 @@
         </p>
 
         <h3 id="alt-results">Action Lookup Table (ALT) Results</h3>
-        <p>In this section, we show the results of ATL policy in the case of InD.
-            In addition, we also show the reactive behavior and multimodality behavior of ATL.</p>
+        <p>In this section, we show the results of the ALT policy in the case of InD.
+            In addition, we also show the reactive behavior and multimodality behavior of ALT.</p>
 
         <div class="alt-results">
-          <h4>ALT Results: In-Distribution (InD)</h4>
+          <h4>In-Distribution (InD)</h4>
           <div class="s1-video-grid">
-            <!-- 30 个视频，6 列排布 -->
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/1.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/2.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/3.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/4.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/5.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/6.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/7.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/8.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/9.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/10.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/11.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/12.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/13.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/14.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/15.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/16.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/17.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/18.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/19.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/20.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/21.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/22.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/23.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/24.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/25.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/26.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/27.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/28.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/29.mp4" type="video/mp4">
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/alt_results/30.mp4" type="video/mp4">
-            </video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/1.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/2.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/3.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/4.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/5.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/6.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/7.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/8.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/9.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/10.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/11.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/12.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/13.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/14.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/15.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/16.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/17.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/18.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/19.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/20.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/21.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/22.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/23.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/24.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/25.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/26.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/27.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/28.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/29.mp4" type="video/mp4"></video>
+            <video muted loop playsinline preload="none" data-lazy><source data-src="assets/alt_results/30.mp4" type="video/mp4"></video>
           </div>
-          <h4>ALT Results: Reactive Behavior</h4>
-            <div class="s2-video-row">
-            <video autoplay loop muted playsinline>
-              <source src="assets/reactive/alt_reactive.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/reactive/diffusion_reactive.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
+          <p class="caption">Thirty in-distribution rollouts of the ALT policy. Hover over any clip to enlarge it.</p>
+
+          <h4>Reactive Behavior</h4>
+            <div class="video-row">
+            <figure>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/reactive/alt_reactive.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <figcaption>ALT Policy (ours)</figcaption>
+            </figure>
+            <figure>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/reactive/diffusion_reactive.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <figcaption>Diffusion Policy</figcaption>
+            </figure>
             </div>
-            <p>
+            <p class="caption">
                 Here, we compare the reactivity of our ALT Policy (left) to a standard Diffusion Policy (right).
-                ALT’s inference is several orders of magnitude faster—allowing it to react quickly to changes in the visual scene.
+                ALT&rsquo;s inference is several orders of magnitude faster&mdash;allowing it to react quickly to changes in the visual scene.
                 In this example, as the cup is moved, ALT adapts immediately and recomputes its action.
                 Diffusion Policies, on the other hand, require slow and expensive sampling steps, making them sluggish in closed-loop control.
-                ALT’s rapid response time results in smoother, more responsive robot behavior—especially in dynamic, real-time environments.
-            </p>
-          <h4>ALT Results: Multimodality Behavior</h4>
-            <div class="s3-video-row">
-            <video autoplay loop muted playsinline>
-              <source src="assets/multimodal/case1.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-            <video autoplay loop muted playsinline>
-              <source src="assets/multimodal/case2.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-            </div>
-            <p>
-                The multimodality behavior of ALT is similar to that of the Diffusion Policy.
-                In this example, we show that ALT can produce multiple distinct action sequences for the same input image, which is come from the training dataset.
-                This multimodality is a key feature of Diffusion Policy, enabling them to handle complex tasks with multiple valid solutions.
-                Even without a generative model, the ALT policy can easily be adapted to have multimodal behavior as shown in the examples case 1 and 2.
-                For each case we show three different trajectories for the same location.
-                This shows that ALT can still model a multi-model distribution that is present in the training data.
+                ALT&rsquo;s rapid response time results in smoother, more responsive robot behavior&mdash;especially in dynamic, real-time environments.
             </p>
 
+          <h4>Multimodality Behavior</h4>
+            <div class="video-row">
+            <figure>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/multimodal/case1.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <figcaption>Case 1</figcaption>
+            </figure>
+            <figure>
+              <video muted loop playsinline preload="none" data-lazy>
+                <source data-src="assets/multimodal/case2.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <figcaption>Case 2</figcaption>
+            </figure>
+            </div>
+            <p class="caption">
+                The multimodality behavior of ALT is similar to that of the Diffusion Policy.
+                In this example, we show that ALT can produce multiple distinct action sequences for the same input image, which comes from the training dataset.
+                This multimodality is a key feature of Diffusion Policies, enabling them to handle complex tasks with multiple valid solutions.
+                Even without a generative model, the ALT policy can easily be adapted to have multimodal behavior as shown in the example cases 1 and 2.
+                For each case we show three different trajectories for the same location.
+                This shows that ALT can still model a multi-modal distribution that is present in the training data.
+            </p>
         </div>
       </div>
     </section>
 
-    <!-- Full Videos -->
+    <!-- Full video -->
     <section id="videos" class="section video-section">
-        <div class="container">
+        <div class="container reveal">
             <h2>Introduction Video</h2>
-            <video controls loop muted>
+            <video controls loop muted preload="metadata">
                 <source src="assets/ALT.mp4" type="video/mp4">
                 Your browser does not support HTML5 video.
             </video>
         </div>
     </section>
 
-    <!-- Publications -->
-    <section id="publications" class="section">
-        <div class="container">
-            <h2>Bibtex</h2>
-            <pre class="bibtex"><code>@article{he2025demystifying,
+    <!-- BibTeX -->
+    <section id="publications" class="section section-alt">
+        <div class="container reveal">
+            <h2>BibTeX</h2>
+            <p class="lead">If you find this work useful, please consider citing:</p>
+
+            <div class="bibtex-block">
+              <span class="bibtex-label">ICLR 2026</span>
+              <button class="copy-btn" type="button">Copy</button>
+              <pre class="bibtex"><code>@inproceedings{he2026demystifying,
+  title={Demystifying robot diffusion policies: Action memorization and a simple lookup table alternative},
+  author={He, Chengyang and Liu, Xu and Camps, Gadiel Mark Sznaier and Bruno, Joseph and Sartoretti, Guillaume Adrien and Schwager, Mac},
+  booktitle={The Fourteenth International Conference on Learning Representations},
+  year={2026}
+}</code></pre>
+            </div>
+
+            <div class="bibtex-block">
+              <span class="bibtex-label">arXiv preprint</span>
+              <button class="copy-btn" type="button">Copy</button>
+              <pre class="bibtex"><code>@article{he2025demystifying,
   title={Demystifying Diffusion Policies: Action Memorization and Simple Lookup Table Alternatives},
   author={He, Chengyang and Liu, Xu and Camps, Gadiel Sznaier and Sartoretti, Guillaume and Schwager, Mac},
   journal={arXiv preprint arXiv:2505.05787},
   year={2025}
 }</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team teaser -->
+    <section id="team" class="section">
+        <div class="container reveal">
+            <h2>Team</h2>
+            <a class="team-card" href="about.html">
+              <div class="team-card-avatars">
+                <img src="assets/team/chengyang.jpeg" alt="Chengyang He">
+                <img src="assets/team/xu.jpg" alt="Xu Liu">
+                <img src="assets/team/gadi.jpeg" alt="Gadiel Sznaier Camps">
+                <img src="assets/team/joebruno.jpg" alt="Joseph Bruno">
+                <img src="assets/team/gui.jpeg" alt="Guillaume Sartoretti">
+                <img src="assets/team/mac.jpg" alt="Mac Schwager">
+              </div>
+              <div class="team-card-text">
+                <span class="team-card-title">Meet the Team</span>
+                <span class="team-card-sub">Six authors from Stanford University, the National University of
+                  Singapore and Temple University.</span>
+              </div>
+              <span class="team-card-cta">View team <span class="arrow">→</span></span>
+            </a>
         </div>
     </section>
 
     <!-- Contact -->
     <section id="contact" class="section">
-        <div class="container">
+        <div class="container reveal">
             <h2>Contact</h2>
-            <p>If you have any questions, feel free to contact <a href="mailto:hecy@stanford.edu">Chengyang He</a>, <a href="mailto:xuliu@stanford.edu">Xu Liu</a> and <a href="mailto:gsznaier@stanford.edu">Gadiel Sznaier Camps</a>.</p>
+            <div class="contact-card">
+              <p>If you have any questions, feel free to contact
+                <a href="mailto:hecy@stanford.edu">Chengyang He</a>,
+                <a href="mailto:xuliu@stanford.edu">Xu Liu</a> and
+                <a href="mailto:gsznaier@stanford.edu">Gadiel Sznaier Camps</a>.</p>
+            </div>
         </div>
     </section>
 
-
     <footer>
         <div class="container">
-            <p>© 2025 Demystifying Robot Diffusion Policies: Action Memorization and a Simple Lookup Table Alternative</p>
+            <p class="footer-title">Demystifying Robot Diffusion Policies: Action Memorization and a Simple Lookup Table Alternative</p>
+            <p class="footer-meta">ICLR 2026 (Poster) · © 2026 The Authors</p>
         </div>
     </footer>
+
+    <button class="to-top" type="button" aria-label="Back to top">↑</button>
 </body>
 </html>
-
